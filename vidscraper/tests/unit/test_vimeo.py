@@ -77,6 +77,12 @@ class VimeoApiTestCase(VimeoTestCase):
         api_url = self.suite.get_api_url(self.video)
         self.assertEqual(api_url, 'http://vimeo.com/api/v2/video/2.json')
 
+    def test_get_api_url_embed(self):
+        video = self.suite.get_video(
+            'http://player.vimeo.com/video/2?title=0&byline=0&portrait=0')
+        api_url = self.suite.get_api_url(video)
+        self.assertEqual(api_url, 'http://vimeo.com/api/v2/video/2.json')
+
     def test_parse_api_response(self):
         api_file = open(os.path.join(self.data_file_dir, 'api.json'))
         data = self.suite.parse_api_response(api_file.read())
