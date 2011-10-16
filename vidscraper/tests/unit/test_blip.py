@@ -86,6 +86,10 @@ class BlipApiTestCase(BlipTestCase):
     def test_get_api_url(self):
         self._test_video_api_url(self.video)
 
+    def test_get_api_url_play_url(self):
+        video = self.suite.get_video(url="http://blip.tv/play/AYH%2Bsi0C.html")
+        self._test_video_api_url(video)
+
     def test_get_api_url_overrides(self):
         video = self.suite.get_video(url="%s?skin=json" % self.base_url)
         self._test_video_api_url(video)

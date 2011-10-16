@@ -32,7 +32,8 @@ import feedparser
 from vidscraper.suites import BaseSuite, registry
 from vidscraper.utils.feedparser import get_entry_thumbnail_url, \
                                         get_first_accepted_enclosure
-from vidscraper.utils.http import clean_description_html
+from vidscraper.utils.http import clean_description_html, \
+    open_url_while_lying_about_agent
 
 
 class BlipSuite(BaseSuite):
@@ -84,11 +85,20 @@ class BlipSuite(BaseSuite):
                           urllib.urlencode(params, True))
 
     def get_api_url(self, video):
-        parsed_url = urlparse.urlparse(video.url)
-        post_id = parsed_url[2].rsplit('-', 1)[1]
-        new_parsed_url = parsed_url[:2] + ("/rss/%s" % post_id,
-                                            None, None, None)
-        return urlparse.urlunparse(new_parsed_url)
+        if '/play/' in video.url:
+            # ugh, it's a redirect to a flash player; load the redirect to get
+            # the real URL.
+            req = open_url_while_lying_about_agent(video.url)
+            redirect_url = req.geturl()
+            flash_url = urlparse.parse_qs(
+                urlparse.urlparse(redirect_url).fragment)['file'][0]
+            return flash_url.replace('/rss/flash/', '/rss/')
+        else:
+            parsed_url = urlparse.urlparse(video.url)
+            post_id = parsed_url[2].rsplit('-', 1)[1]
+            new_parsed_url = parsed_url[:2] + ("/rss/%s" % post_id,
+                                               None, None, None)
+            return urlparse.urlunparse(new_parsed_url)
 
     def parse_api_response(self, response_text):
         parsed = feedparser.parse(response_text)
