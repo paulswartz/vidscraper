@@ -38,7 +38,7 @@ from vidscraper.utils.feedparser import struct_time_to_datetime
 
 class YouTubeSuite(BaseSuite):
     video_regex = r'^https?://(' +\
-    r'([^/]+\.)?youtube.com/(?:watch)?\?(\w+=[^&]+&)*v=' +\
+    r'([^/]+\.)?youtube.com/(?:(?:watch)?\?(\w+=[^&]+&)*v=|embed/)' +\
                   r'|youtu.be/)(?P<video_id>[\w-]+)'
     feed_regex = r'^https?://([^/]+\.)?youtube.com/'
     non_feed_regexes = [re.compile(r) for r in (
