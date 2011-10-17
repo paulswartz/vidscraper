@@ -99,6 +99,18 @@ class YouTubeSuite(BaseSuite):
         return int(feed_response.feed.get('opensearch_totalresults',
                                           len(feed_response.entries)))
 
+    def get_oembed_url(self, video):
+        print video.url
+        if '/embed/' in video.url:
+            # /embed/ URLs 404 at the oembed endpoint, so rewrite them
+            video_id = self.video_regex.match(video.url).group('video_id')
+            return u'%s?url=%s' % (
+                self.oembed_endpoint,
+                urllib.quote_plus(
+                    'http://www.youtube.com/watch?v=%s' % video_id))
+        else:
+            return super(YouTubeSuite, self).get_oembed_url(video)
+
     def get_api_url(self, video):
         video_id = self.video_regex.match(video.url).group('video_id')
         return "http://gdata.youtube.com/feeds/api/videos/%s" % video_id

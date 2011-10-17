@@ -667,10 +667,7 @@ class BaseSuite(object):
         """
         for method in methods:
             url = getattr(self, "get_%s_url" % method)(video)
-            try:
-                response_text = urllib2.urlopen(url, timeout=5).read()
-            except urllib2.URLError:
-                continue
+            response_text = urllib2.urlopen(url, timeout=5).read()
             data = getattr(self, "parse_%s_response" % method)(response_text)
             self.apply_video_data(video, data)
 

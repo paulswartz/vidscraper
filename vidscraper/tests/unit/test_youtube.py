@@ -105,6 +105,16 @@ class YouTubeOembedTestCase(YouTubeTestCase):
         oembed_url = self.suite.get_oembed_url(self.video)
         self.assertEqual(oembed_url, expected)
 
+    def test_get_oembed_url_embed(self):
+        # /embed/* URLs return a 404, so we rewrite them to just use the
+        # regular URL
+        escaped_url = urllib.quote_plus(self.video.url)
+        expected = "http://www.youtube.com/oembed?url=%s" % escaped_url
+        video = self.suite.get_video(
+            url='http://www.youtube.com/embed/J_DV9b0x7v4')
+        oembed_url = self.suite.get_oembed_url(video)
+        self.assertEqual(oembed_url, expected)
+
     def test_parse_oembed_response(self):
         oembed_file = open(os.path.join(
                             self.data_file_dir, 'oembed.json'))
