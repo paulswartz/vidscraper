@@ -100,7 +100,6 @@ class YouTubeSuite(BaseSuite):
                                           len(feed_response.entries)))
 
     def get_oembed_url(self, video):
-        print video.url
         if '/embed/' in video.url:
             # /embed/ URLs 404 at the oembed endpoint, so rewrite them
             video_id = self.video_regex.match(video.url).group('video_id')
