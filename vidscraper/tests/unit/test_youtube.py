@@ -99,6 +99,10 @@ class YouTubeOembedTestCase(YouTubeTestCase):
         url = 'http://www.youtube.com/watch?feature=youtu.be&v=J_DV9b0x7v4'
         self.assertTrue(self.suite.handles_video_url(url))
 
+    def test_popout_url(self):
+        url = 'http://www.youtube.com/v/xWIKQMBBTtk&rel=0&egm=0&showinfo=0&fs=1'
+        self.assertTrue(self.suite.handles_video_url(url))
+
     def test_get_oembed_url(self):
         escaped_url = urllib.quote_plus(self.video.url)
         expected = "http://www.youtube.com/oembed?url=%s" % escaped_url
