@@ -26,6 +26,8 @@
 import re
 import urllib
 
+from BeautifulSoup import BeautifulSoup
+
 import feedparser
 # add the OpenSearch namespace to FeedParser
 # http://code.google.com/p/feedparser/issues/detail?id=55
@@ -41,21 +43,23 @@ class YouTubeSuite(BaseSuite):
     r'([^/]+\.)?youtube.com/(?:(?:watch)?\?(\w+=[^&]+&)*v=|(?:embed|v)/)' +\
                   r'|youtu.be/)(?P<video_id>[\w-]+)'
     feed_regex = r'^https?://([^/]+\.)?youtube.com/'
-    non_feed_regexes = [re.compile(r) for r in (
+    feed_regexes = [re.compile(r) for r in (
             (r'^(http://)?(www\.)?youtube\.com/profile(_videos)?'
              r'\?(\w+=\w+&)*user=(?P<name>\w+)'),
             (r'^(http://)?(www\.)?youtube\.com/((rss/)?user/)?'
-             r'(?P<name>\w+)'))]
+             r'(?P<name>\w+)'),
+            (r'^(https?://)?gdata.youtube.com/feeds/base/users/(?P<name>\w+)'
+             ))]
     feed_url_base = ('http://gdata.youtube.com/feeds/base/users/%s/'
                     'uploads?alt=rss&v=2')
 
     oembed_endpoint = "http://www.youtube.com/oembed"
-    api_fields = set(['link', 'title', 'description',
+    api_fields = set(['link', 'title', 'description', 'guid',
                       'thumbnail_url', 'publish_datetime', 'tags',
                       'flash_enclosure_url', 'user', 'user_url'])
 
     def get_feed_url(self, url, extra_params=None):
-        for regex in self.non_feed_regexes:
+        for regex in self.feed_regexes:
             match = regex.match(url)
             if match:
                 name = match.group('name')
@@ -68,31 +72,42 @@ class YouTubeSuite(BaseSuite):
     def parse_feed_entry(self, entry):
         """
         Reusable method to parse a feedparser entry from a youtube rss feed.
-        Returns a dictionary mapping :class:`.ScrapedVideo` fields to values.
+        Returns a dictionary mapping :class:`.Video` fields to values.
 
         """
         user = entry['author']
         if 'published_parsed' in entry:
             best_date = struct_time_to_datetime(entry['published_parsed'])
-        elif 'updated_parsed' in entry:
-            best_date = struct_time_to_datetime(entry['updated_parsed'])
         else:
-            best_date = None
+            best_date = struct_time_to_datetime(entry['updated_parsed'])
+        if ('summary_detail' in entry and
+            entry['summary_detail']['type'] == 'text/html'):
+            # HTML-ified description in RSS feeds
+            soup = BeautifulSoup(entry['summary']).findAll('span')[0]
+            description = unicode(soup.string)
+        else:
+            description = entry['summary']
         data = {
             'link': entry['links'][0]['href'].split('&', 1)[0],
             'title': entry['title'],
-            'description': entry['summary'],
+            'description': description,
             'thumbnail_url': get_entry_thumbnail_url(entry),
             'publish_datetime': best_date,
             'tags': [t['term'] for t in entry['tags']
                     if not t['term'].startswith('http')],
             'user': user,
             'user_url': u'http://www.youtube.com/user/%s' % user,
+            'guid' : entry['id'],
         }
-        if 'guid' in entry.keys():
-            data['guid'] = entry.guid
+        if entry.id.startswith('tag:youtube.com'):
+            data['guid'] = 'http://gdata.youtube.com/feeds/api/videos/%s' % (
+                entry.id.split(':')[-1],)
         if 'media_player' in entry: # not in feeds, just the API
             data['flash_enclosure_url'] = entry['media_player']['url']
+        if data['thumbnail_url'].endswith('/default.jpg'):
+            # got a crummy version; increase the resolution
+            data['thumbnail_url'] = data['thumbnail_url'].replace(
+                '/default.jpg', '/hqdefault.jpg')
         return data
 
     def get_feed_entry_count(self, feed, feed_response):

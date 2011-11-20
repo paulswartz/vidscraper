@@ -24,7 +24,6 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import datetime
-import re
 import os
 import unittest
 import urllib
@@ -32,8 +31,6 @@ import urlparse
 
 import feedparser
 
-from vidscraper.errors import CantIdentifyUrl
-from vidscraper.suites.base import ScrapedFeed
 from vidscraper.suites.youtube import YouTubeSuite
 
 
@@ -66,6 +63,7 @@ CARAMELL_DANSEN_ATOM_DATA = {
         u"Music",
     ]),
     'publish_datetime': datetime.datetime(2007, 5, 7, 22, 15, 21),
+    'guid': u'http://gdata.youtube.com/feeds/api/videos/J_DV9b0x7v4'
 }
 
 
@@ -183,7 +181,7 @@ class YouTubeFeedTestCase(YouTubeTestCase):
         YouTubeTestCase.setUp(self)
         self.feed_url = ('http://gdata.youtube.com/feeds/base/users/'
                          'AssociatedPress/uploads?alt=rss&v=2')
-        self.feed = ScrapedFeed(self.feed_url, self.suite)
+        self.feed = self.suite.get_feed(self.feed_url)
         self.feed_data = open(
             os.path.join(self.data_file_dir, 'feed.atom')).read()
 
@@ -216,6 +214,25 @@ class YouTubeFeedTestCase(YouTubeTestCase):
                 'opensearch_itemsperpage': '25'}}
         new_url = self.suite.get_next_feed_page_url(self.feed, response)
         self.assertEqual(new_url, None)
+
+    def test_parse_feed_entry(self):
+        response = self.suite.get_feed_response(self.feed, self.feed_data)
+        entries = self.suite.get_feed_entries(self.feed, response)
+        data = self.suite.parse_feed_entry(entries[0])
+        self.assertTrue('Dire Straits' in data['description'])
+        del data['description']
+        self.assertEqual(
+            data,
+            {'guid': u'http://gdata.youtube.com/feeds/api/videos/w_eGBcd--HU',
+             'link': u'http://www.youtube.com/watch?v=w_eGBcd--HU',
+             'publish_datetime': datetime.datetime(2011, 10, 19, 16, 50, 10),
+             'tags': [],
+             'thumbnail_url':
+                 u'http://i.ytimg.com/vi/w_eGBcd--HU/hqdefault.jpg',
+             'title': u'Getting It Straight With the Straits',
+             'user': u'AssociatedPress',
+             'user_url': u'http://www.youtube.com/user/AssociatedPress'}
+            )
 
 class YouTubeSearchTestCase(YouTubeTestCase):
     def setUp(self):
