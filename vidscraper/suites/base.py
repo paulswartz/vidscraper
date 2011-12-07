@@ -301,18 +301,17 @@ class BaseVideoIterator(object):
                         if item_count >= self._max_results:
                             raise StopIteration
                     item_count += 1
-                else:
-                    # We haven't hit the limit yet. Continue to the next page
-                    # if:
-                    # - crawl is enabled
-                    # - the current page was not empty
-                    # - a url can be calculated for the next page.
-                    url = None
-                    if self.crawl and items:
-                        url = self.get_next_url(response)
-                    if url is None:
-                        break
-                    response = self.get_url_response(url)
+
+                # We haven't hit the limit yet. Continue to the next page if:
+                # - crawl is enabled
+                # - the current page was not empty
+                # - a url can be calculated for the next page.
+                url = None
+                if self.crawl and items:
+                    url = self.get_next_url(response)
+                if url is None:
+                    break
+                response = self.get_url_response(url)
         except NotImplementedError:
             pass
         raise StopIteration
@@ -761,7 +760,11 @@ class BaseSuite(object):
         the resulting structure.
 
         """
-        return feedparser.parse(feed_url)
+        response = feedparser.parse(feed_url)
+        # Don't let feedparser silence connection problems.
+        if isinstance(response.get('bozo_exception', None), urllib2.URLError):
+            raise response.bozo_exception
+        return response
 
     def get_feed_info_response(self, feed, response):
         """

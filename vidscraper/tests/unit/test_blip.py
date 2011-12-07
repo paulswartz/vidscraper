@@ -177,14 +177,17 @@ class BlipFeedTestCase(BlipTestCase):
             self.assertTrue(isinstance(video, Video))
 
     def test_next_feed_page_url(self):
-        self.feed.url = 'http://blip.tv/nothing/here/?page=5'
-        new_url = self.suite.get_next_feed_page_url(self.feed, None)
+        # get_next_feed_page_url expects ``feed``, ``feed_response`` arguments.
+        # feed_response is a feedparser response.
+        response = self.suite.get_feed_response(self.feed, self.feed_data)
+        response.href = 'http://blip.tv/nothing/here/?page=5'
+        new_url = self.suite.get_next_feed_page_url(None, response)
         self.assertEqual(new_url, 'http://blip.tv/nothing/here/?page=6')
-        self.feed.url = 'http://blip.tv/nothing/here/'
-        new_url = self.suite.get_next_feed_page_url(self.feed, None)
+        response.href = 'http://blip.tv/nothing/here/'
+        new_url = self.suite.get_next_feed_page_url(None, response)
         self.assertEqual(new_url, 'http://blip.tv/nothing/here/?page=2')
-        self.feed.url = 'http://blip.tv/nothing/here/?page=notanumber'
-        new_url = self.suite.get_next_feed_page_url(self.feed, None)
+        response.href = 'http://blip.tv/nothing/here/?page=notanumber'
+        new_url = self.suite.get_next_feed_page_url(None, response)
         self.assertEqual(new_url, 'http://blip.tv/nothing/here/?page=2')
 
 
