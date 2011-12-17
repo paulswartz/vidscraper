@@ -228,6 +228,15 @@ class YouTubeScrapeTestCase(YouTubeTestCase):
         for field in self.suite.scrape_fields:
             self.assertEqual(data[field], expected[field])
 
+    def test_parse_scrape_response3(self):
+        """
+        Protected file, no data.
+        """
+        scrape_file = open(os.path.join(self.data_file_dir, 'scrape3.txt'))
+        data = self.suite.parse_scrape_response(scrape_file.read())
+        self.assertTrue(isinstance(data, dict))
+        self.assertEqual(data, {})
+
 class YouTubeFeedTestCase(YouTubeTestCase):
     def setUp(self):
         YouTubeTestCase.setUp(self)

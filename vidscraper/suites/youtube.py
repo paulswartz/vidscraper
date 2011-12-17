@@ -157,6 +157,8 @@ class YouTubeSuite(BaseSuite):
 
     def parse_scrape_response(self, response_text):
         params = urlparse.parse_qs(response_text)
+        if params['status'] != ['ok']:
+            return {}
         data = {
             'title': params['title'][0].decode('utf8'),
             'user': params['author'][0].decode('utf8'),
