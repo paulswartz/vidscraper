@@ -12,7 +12,8 @@ setup(
         'lxml',
         'oauth2',
         'feedparser',
-        'BeautifulSoup>=3.2.0'
+        'BeautifulSoup>=3.2.0',
+        'simplejson'
     ],
     classifiers=(
         'Development Status :: 3 - Alpha',
