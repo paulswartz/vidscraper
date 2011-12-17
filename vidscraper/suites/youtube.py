@@ -163,7 +163,10 @@ class YouTubeSuite(BaseSuite):
             'user_url': u'http://www.youtube.com/user/%s' % (
                 params['author'][0].decode('utf8')),
             'thumbnail_url': params['thumbnail_url'][0],
-            'tags': params['keywords'][0].decode('utf8').split(',')
+            'tags': params['keywords'][0].decode('utf8').split(','),
+            'file_url': None,
+            'file_url_mimetype': None,
+            'file_url_expires': None,
             }
         if data['thumbnail_url'].endswith('/default.jpg'):
             # got a crummy version; increase the resolution
@@ -183,7 +186,7 @@ class YouTubeSuite(BaseSuite):
         # now build the actual fmt_url_map ...
         fmt_url_map = dict(zip(fmt_list, fmt_url_map))
         for fmt, mimetype in self.preferred_fmt_types:
-            if fmt in fmt_url_map:
+            if fmt in fmt_url_map and fmt_url_map[fmt].startswith('http'):
                 data['file_url'] = file_url = fmt_url_map[fmt]
                 data['file_url_mimetype'] = mimetype
                 parsed_url = urlparse.urlparse(file_url)

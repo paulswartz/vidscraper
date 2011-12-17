@@ -206,7 +206,28 @@ class YouTubeScrapeTestCase(YouTubeTestCase):
         for field in self.suite.scrape_fields:
             self.assertEqual(data[field], expected[field])
 
-        
+    def test_parse_scrape_response2(self):
+        """
+        Protected file, doesn't have a real download URL.
+        """
+        scrape_file = open(os.path.join(self.data_file_dir, 'scrape2.txt'))
+        data = self.suite.parse_scrape_response(scrape_file.read())
+        self.assertTrue(isinstance(data, dict))
+        self.assertEqual(set(data), self.suite.scrape_fields)
+        expected = {
+            'title': u'Koyaanisqatsi',
+            'thumbnail_url': 'http://i4.ytimg.com/vi/Sps6C9u7ras/hqdefault.jpg',
+            'user': u'MGMDigitalMedia',
+            'user_url': u'http://www.youtube.com/user/MGMDigitalMedia',
+            'tags': [u'classic', u'beautiful', u'movie', u'images',
+                     u'time-lapse', u'nature'],
+            'file_url_expires': None,
+            'file_url_mimetype': None,
+            'file_url': None,
+            }
+        for field in self.suite.scrape_fields:
+            self.assertEqual(data[field], expected[field])
+
 class YouTubeFeedTestCase(YouTubeTestCase):
     def setUp(self):
         YouTubeTestCase.setUp(self)
